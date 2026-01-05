@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Five Elements Finder (Wood/Fire/Earth/Metal/Water)</title>
 
-  <!-- Optional: nicer mobile status bar / home screen -->
   <meta name="theme-color" content="#0b0c10" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
 
@@ -94,45 +93,12 @@
       border: 1px solid color-mix(in oklab, var(--line), #000 20%);
       background: var(--btn2);
       color: var(--text);
-      font-size: 16px; /* 모바일에서 자동 확대 방지 */
+      font-size: 16px; /* prevent iOS zoom */
       outline: none;
     }
     input[type="date"]:focus, input[type="time"]:focus{
       border-color: color-mix(in oklab, var(--focus), #fff 5%);
       box-shadow: 0 0 0 3px rgba(122,162,255,.20);
-    }
-
-    .toggles{
-      display:flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    .toggle{
-      display:flex;
-      gap:10px;
-      align-items:flex-start;
-      padding: 12px 12px;
-      border-radius: 14px;
-      border: 1px solid color-mix(in oklab, var(--line), #000 20%);
-      background: rgba(16,20,42,.55);
-    }
-    .toggle input{
-      transform: translateY(2px);
-      width: 18px;
-      height: 18px;
-      accent-color: var(--focus);
-    }
-    .toggle .t-title{
-      font-size: 14px;
-      font-weight: 700;
-      margin:0;
-    }
-    .toggle .t-desc{
-      margin:4px 0 0;
-      font-size: 13px;
-      color: var(--muted2);
-      line-height: 1.35;
     }
 
     .actions{
@@ -173,7 +139,7 @@
       display:flex;
       flex-wrap: wrap;
       gap: 10px;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
     }
     .big{
@@ -182,6 +148,13 @@
       letter-spacing: .2px;
       margin:0;
       line-height: 1.05;
+    }
+    .subbig{
+      margin: 8px 0 0;
+      font-size: 15px;
+      color: var(--muted);
+      font-weight: 750;
+      line-height: 1.25;
     }
     .pill{
       display:inline-flex;
@@ -219,6 +192,7 @@
       color: var(--muted);
     }
     .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; color: var(--text); }
+
     .note{
       margin-top: 12px;
       font-size: 12px;
@@ -233,8 +207,8 @@
     <div class="header">
       <h1 class="title">Five Elements Finder</h1>
       <p class="subtitle">
-        Enter your birth date (and optional time). This simple version uses the <b>Day Stem (Day Master)</b> to map to
-        <b>Wood / Fire / Earth / Metal / Water</b>.
+        Enter your birth date (and optional time). This simple version uses the <b>Day Stem (Day Master)</b>
+        to map to <b>Wood / Fire / Earth / Metal / Water</b>.
       </p>
     </div>
 
@@ -250,24 +224,6 @@
         </div>
       </div>
 
-      <div class="toggles">
-        <div class="toggle">
-          <input id="ziAsNextDay" type="checkbox" />
-          <div>
-            <p class="t-title">Treat 23:00–23:59 as the next day</p>
-            <p class="t-desc">Some traditions count the late “Zi hour” as the next day. Turn this on if you want that behavior.</p>
-          </div>
-        </div>
-
-        <div class="toggle">
-          <input id="showHourPillar" type="checkbox" checked />
-          <div>
-            <p class="t-title">Show Hour Pillar when time is provided</p>
-            <p class="t-desc">If you enter time, we’ll also show the Hour Pillar (Stem + Branch) as extra info.</p>
-          </div>
-        </div>
-      </div>
-
       <div class="actions">
         <button id="calcBtn">Calculate</button>
         <button id="resetBtn" class="secondary" type="button">Reset</button>
@@ -276,8 +232,7 @@
       <div id="out" class="result"></div>
 
       <div class="note">
-        For a full Four Pillars calculator (year/month pillars with seasonal markers, location/timezone, etc.),
-        the logic is much larger. This page is intentionally a clean “presentation-friendly” quick checker.
+        Presentation-friendly quick checker. If you enter a time, we’ll also show the Hour Pillar in “Details”.
       </div>
     </div>
   </div>
@@ -303,12 +258,6 @@
       - 32045;
   }
 
-  function addDaysUTC(y, m, d, delta){
-    const dt = new Date(Date.UTC(y, m - 1, d));
-    dt.setUTCDate(dt.getUTCDate() + delta);
-    return [dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate()];
-  }
-
   // Sexagenary day stem/branch from JD_noon:
   // T = 1 + mod(JD_noon - 1, 10)
   // B = 1 + mod(JD_noon + 1, 12)
@@ -319,12 +268,21 @@
     return { jd, stemIndex: T, branchIndex: B, pillar: STEMS[T-1] + BRANCHES[B-1] };
   }
 
-  function elementFromStemIndex(T){
-    if (T === 1 || T === 2) return { name:"Wood", emoji:"🌳" };
-    if (T === 3 || T === 4) return { name:"Fire", emoji:"🔥" };
-    if (T === 5 || T === 6) return { name:"Earth", emoji:"🪨" };
-    if (T === 7 || T === 8) return { name:"Metal", emoji:"🪙" };
-    return { name:"Water", emoji:"💧" }; // 9,10
+  // Element + “Big/Small” Day Master label (e.g., Big Fire = 丙火)
+  function dayMasterInfo(T){
+    switch (T){
+      case 1: return { element:"Wood", emoji:"🌳", label:"Big Wood", roman:"Jia", han: "甲木" };
+      case 2: return { element:"Wood", emoji:"🌳", label:"Small Wood", roman:"Yi", han: "乙木" };
+      case 3: return { element:"Fire", emoji:"🔥", label:"Big Fire", roman:"Bing", han: "丙火" }; // 병화(큰불)
+      case 4: return { element:"Fire", emoji:"🔥", label:"Small Fire", roman:"Ding", han: "丁火" };
+      case 5: return { element:"Earth", emoji:"🪨", label:"Big Earth", roman:"Wu", han: "戊土" };
+      case 6: return { element:"Earth", emoji:"🪨", label:"Small Earth", roman:"Ji", han: "己土" };
+      case 7: return { element:"Metal", emoji:"🪙", label:"Big Metal", roman:"Geng", han: "庚金" };
+      case 8: return { element:"Metal", emoji:"🪙", label:"Small Metal", roman:"Xin", han: "辛金" };
+      case 9: return { element:"Water", emoji:"💧", label:"Big Water", roman:"Ren", han: "壬水" };
+      case 10:return { element:"Water", emoji:"💧", label:"Small Water", roman:"Gui", han: "癸水" };
+      default:return { element:"", emoji:"", label:"", roman:"", han:"" };
+    }
   }
 
   function hourBranchIndex(hour){
@@ -344,7 +302,7 @@
       5:9, 10:9
     }[dayStemIndex];
 
-    const hb = hourBranchIndex(hour);              // 1..12
+    const hb = hourBranchIndex(hour);               // 1..12
     const hs = ((ziStart - 1 + (hb - 1)) % 10) + 1; // 1..10
     return { stemIndex: hs, branchIndex: hb, pillar: STEMS[hs-1] + BRANCHES[hb-1] };
   }
@@ -354,8 +312,6 @@
   // ---- UI ----
   const birthDate = document.getElementById("birthDate");
   const birthTime = document.getElementById("birthTime");
-  const ziAsNextDay = document.getElementById("ziAsNextDay");
-  const showHourPillar = document.getElementById("showHourPillar");
   const out = document.getElementById("out");
   const calcBtn = document.getElementById("calcBtn");
   const resetBtn = document.getElementById("resetBtn");
@@ -377,22 +333,20 @@
       return;
     }
 
-    let [y, m, d] = dateStr.split("-").map(Number);
+    const [yy, mm, dd] = dateStr.split("-").map(Number);
+    const y = yy, m = mm, d = dd;
 
-    let hour = null, minute = null;
+    let hour = null;
     if (timeStr){
-      [hour, minute] = timeStr.split(":").map(Number);
-      if (ziAsNextDay.checked && hour === 23){
-        [y, m, d] = addDaysUTC(y, m, d, 1);
-      }
+      hour = Number(timeStr.split(":")[0]);
     }
 
     const day = dayPillarFromDate(y, m, d);
-    const el = elementFromStemIndex(day.stemIndex);
+    const info = dayMasterInfo(day.stemIndex);
     const dayStem = STEMS[day.stemIndex - 1];
 
     let hourBlock = "";
-    if (showHourPillar.checked && hour !== null){
+    if (hour !== null){
       const hp = hourPillar(day.stemIndex, hour);
       hourBlock = `
         <div class="detail-grid">
@@ -404,7 +358,10 @@
 
     out.innerHTML = `
       <div class="bigline">
-        <p class="big">${el.emoji} ${el.name}</p>
+        <div>
+          <p class="big">${info.emoji} ${info.element}</p>
+          <div class="subbig">Day Master: <span class="mono">${info.label}</span> (${info.roman} · <span class="mono">${info.han}</span>)</div>
+        </div>
         <span class="pill">Day Stem: <span class="mono">${dayStem}</span></span>
       </div>
 
@@ -423,8 +380,6 @@
   function resetAll(){
     birthDate.value = "";
     birthTime.value = "";
-    ziAsNextDay.checked = false;
-    showHourPillar.checked = true;
     out.style.display = "none";
     out.innerHTML = "";
   }
@@ -432,11 +387,9 @@
   calcBtn.addEventListener("click", calculate);
   resetBtn.addEventListener("click", resetAll);
 
-  // Optional: auto-calc on change (nice on mobile)
+  // Auto-calc on change (nice on mobile)
   birthDate.addEventListener("change", () => { if (birthDate.value) calculate(); });
   birthTime.addEventListener("change", () => { if (birthDate.value) calculate(); });
-  ziAsNextDay.addEventListener("change", () => { if (birthDate.value) calculate(); });
-  showHourPillar.addEventListener("change", () => { if (birthDate.value) calculate(); });
 </script>
 </body>
 </html>
