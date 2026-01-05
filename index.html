@@ -101,7 +101,7 @@
       border: 1px solid rgba(42,47,74,.9);
       background: var(--btn2);
       color: var(--text);
-      font-size: 16px; /* prevent iOS zoom */
+      font-size: 16px;
       outline: none;
     }
     input[type="text"]:focus{
@@ -183,29 +183,6 @@
       white-space: nowrap;
     }
 
-    details{
-      margin-top: 12px;
-      border-top: 1px solid rgba(42,47,74,.7);
-      padding-top: 10px;
-    }
-    summary{
-      cursor:pointer;
-      color: var(--muted);
-      font-weight: 800;
-      font-size: 14px;
-      list-style: none;
-      outline:none;
-    }
-    summary::-webkit-details-marker{ display:none; }
-    .detail-grid{
-      margin-top: 10px;
-      display:grid;
-      gap: 8px;
-      font-size: 14px;
-      color: var(--muted);
-    }
-    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; color: var(--text); }
-
     .note{
       margin-top: 12px;
       font-size: 12px;
@@ -278,7 +255,6 @@
 
     function mod(n, m){ return ((n % m) + m) % m; }
 
-    // Gregorian date -> Julian Day Number at noon (integer)
     function jdnNoon(y, m, d){
       const a = Math.floor((14 - m) / 12);
       const y2 = y + 4800 - a;
@@ -292,9 +268,6 @@
         - 32045;
     }
 
-    // Sexagenary day stem/branch from JD_noon:
-    // T = 1 + mod(JD_noon - 1, 10)
-    // B = 1 + mod(JD_noon + 1, 12)
     function dayPillarFromDate(y, m, d){
       const jd = jdnNoon(y, m, d);
       const T = 1 + mod(jd - 1, 10);
@@ -302,8 +275,6 @@
       return { jd, stemIndex: T, branchIndex: B, pillar: STEMS[T-1] + BRANCHES[B-1] };
     }
 
-    // UI labels: Tree/Fire/Soil/Metal/Water (presentation-friendly)
-    // Day Master: Big/Small + Chinese + Korean reading
     function dayMasterInfo(T){
       switch (T){
         case 1:  return { element:"Wood(Tree)",        emoji:"🌳", roman:"Jia",  han:"甲木", ko:"갑목" };
@@ -320,7 +291,6 @@
       }
     }
 
-    function pad2(n){ return String(n).padStart(2, "0"); }
     function toInt(v){ return Number(String(v).trim()); }
 
     function isValidDate(y, m, d){
@@ -388,14 +358,6 @@
             </div>
             <span class="pill">Day Stem: <span class="mono">${dayStem}</span></span>
           </div>
-
-          <details>
-            <summary>Show details</summary>
-            <div class="detail-grid">
-              <div>Day Pillar (Stem+Branch): <span class="mono">${day.pillar}</span></div>
-              <div style="color:var(--muted2);font-size:12px;">Date used: ${y}-${pad2(m)}-${pad2(d)}</div>
-            </div>
-          </details>
         `);
       }catch(e){
         showError("Calculation failed. (Open console for details)");
@@ -422,7 +384,6 @@
     digitsOnly(birthMonth, 2);
     digitsOnly(birthDay, 2);
 
-    // No auto-calc: only Calculate button triggers calculation
     calcBtn.addEventListener("click", calculate);
     resetBtn.addEventListener("click", resetAll);
 
