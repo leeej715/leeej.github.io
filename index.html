@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Five Elements Finder (Wood/Fire/Earth/Metal/Water)</title>
+  <title>Five Elements Finder</title>
 
   <meta name="theme-color" content="#0b0c10" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -39,12 +39,7 @@
       padding: 18px 16px 28px;
     }
 
-    .header{
-      display:flex;
-      flex-direction: column;
-      gap: 6px;
-      margin: 10px 0 14px;
-    }
+    .header{ display:flex; flex-direction: column; gap: 6px; margin: 10px 0 14px; }
     .title{
       font-size: clamp(20px, 4.8vw, 28px);
       font-weight: 820;
@@ -68,25 +63,8 @@
       backdrop-filter: blur(6px);
     }
 
-    .grid{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap: 12px;
-    }
-    @media (min-width: 720px){
-      .grid.two{
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-
-    label{
-      display:block;
-      font-size: 13px;
-      color: var(--muted);
-      margin: 2px 0 8px;
-    }
-
-    input[type="date"], input[type="time"]{
+    label{ display:block; font-size: 13px; color: var(--muted); margin: 2px 0 8px; }
+    input[type="date"]{
       width:100%;
       padding: 14px 14px;
       border-radius: 14px;
@@ -96,7 +74,7 @@
       font-size: 16px; /* prevent iOS zoom */
       outline: none;
     }
-    input[type="date"]:focus, input[type="time"]:focus{
+    input[type="date"]:focus{
       border-color: color-mix(in oklab, var(--focus), #fff 5%);
       box-shadow: 0 0 0 3px rgba(122,162,255,.20);
     }
@@ -207,21 +185,14 @@
     <div class="header">
       <h1 class="title">Five Elements Finder</h1>
       <p class="subtitle">
-        Enter your birth date (and optional time). This simple version uses the <b>Day Stem (Day Master)</b>
-        to map to <b>Wood / Fire / Earth / Metal / Water</b>.
+        Enter your birth date. This version uses the <b>Day Stem (Day Master)</b> to show your element.
       </p>
     </div>
 
     <div class="card">
-      <div class="grid two">
-        <div>
-          <label for="birthDate">Birth date</label>
-          <input id="birthDate" type="date" />
-        </div>
-        <div>
-          <label for="birthTime">Birth time (optional)</label>
-          <input id="birthTime" type="time" />
-        </div>
+      <div>
+        <label for="birthDate">Birth date</label>
+        <input id="birthDate" type="date" />
       </div>
 
       <div class="actions">
@@ -232,13 +203,12 @@
       <div id="out" class="result"></div>
 
       <div class="note">
-        Presentation-friendly quick checker. If you enter a time, we’ll also show the Hour Pillar in “Details”.
+        Quick, presentation-friendly checker (date only).
       </div>
     </div>
   </div>
 
 <script>
-  // ---- Core data ----
   const STEMS = ["甲","乙","丙","丁","戊","己","庚","辛","壬","癸"];
   const BRANCHES = ["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"];
 
@@ -265,131 +235,4 @@
     const jd = jdnNoon(y, m, d);
     const T = 1 + mod(jd - 1, 10);
     const B = 1 + mod(jd + 1, 12);
-    return { jd, stemIndex: T, branchIndex: B, pillar: STEMS[T-1] + BRANCHES[B-1] };
-  }
-
-  // Element + “Big/Small” Day Master label (e.g., Big Fire = 丙火)
-  function dayMasterInfo(T){
-    switch (T){
-      case 1: return { element:"Wood", emoji:"🌳", label:"Big Wood", roman:"Jia", han: "甲木" };
-      case 2: return { element:"Wood", emoji:"🌳", label:"Small Wood", roman:"Yi", han: "乙木" };
-      case 3: return { element:"Fire", emoji:"🔥", label:"Big Fire", roman:"Bing", han: "丙火" }; // 병화(큰불)
-      case 4: return { element:"Fire", emoji:"🔥", label:"Small Fire", roman:"Ding", han: "丁火" };
-      case 5: return { element:"Earth", emoji:"🪨", label:"Big Earth", roman:"Wu", han: "戊土" };
-      case 6: return { element:"Earth", emoji:"🪨", label:"Small Earth", roman:"Ji", han: "己土" };
-      case 7: return { element:"Metal", emoji:"🪙", label:"Big Metal", roman:"Geng", han: "庚金" };
-      case 8: return { element:"Metal", emoji:"🪙", label:"Small Metal", roman:"Xin", han: "辛金" };
-      case 9: return { element:"Water", emoji:"💧", label:"Big Water", roman:"Ren", han: "壬水" };
-      case 10:return { element:"Water", emoji:"💧", label:"Small Water", roman:"Gui", han: "癸水" };
-      default:return { element:"", emoji:"", label:"", roman:"", han:"" };
-    }
-  }
-
-  function hourBranchIndex(hour){
-    // 23:00–00:59 => Zi, 01–02 => Chou ... 21–22 => Hai
-    if (hour === 23 || hour === 0) return 1;  // 子
-    return ((hour + 1) >> 1) + 1;            // 1..22 -> 2..12
-  }
-
-  function hourPillar(dayStemIndex, hour){
-    // Zi hour stem start depends on day stem group (5 Rat method)
-    // 甲/己 -> 甲, 乙/庚 -> 丙, 丙/辛 -> 戊, 丁/壬 -> 庚, 戊/癸 -> 壬
-    const ziStart = {
-      1:1, 6:1,
-      2:3, 7:3,
-      3:5, 8:5,
-      4:7, 9:7,
-      5:9, 10:9
-    }[dayStemIndex];
-
-    const hb = hourBranchIndex(hour);               // 1..12
-    const hs = ((ziStart - 1 + (hb - 1)) % 10) + 1; // 1..10
-    return { stemIndex: hs, branchIndex: hb, pillar: STEMS[hs-1] + BRANCHES[hb-1] };
-  }
-
-  function pad2(n){ return String(n).padStart(2, "0"); }
-
-  // ---- UI ----
-  const birthDate = document.getElementById("birthDate");
-  const birthTime = document.getElementById("birthTime");
-  const out = document.getElementById("out");
-  const calcBtn = document.getElementById("calcBtn");
-  const resetBtn = document.getElementById("resetBtn");
-
-  function renderError(msg){
-    out.style.display = "block";
-    out.innerHTML = `<div style="color:#ffd6d6;font-weight:800;">${msg}</div>`;
-  }
-
-  function calculate(){
-    const dateStr = birthDate.value;
-    const timeStr = birthTime.value;
-
-    out.style.display = "none";
-    out.innerHTML = "";
-
-    if (!dateStr){
-      renderError("Please enter a birth date.");
-      return;
-    }
-
-    const [yy, mm, dd] = dateStr.split("-").map(Number);
-    const y = yy, m = mm, d = dd;
-
-    let hour = null;
-    if (timeStr){
-      hour = Number(timeStr.split(":")[0]);
-    }
-
-    const day = dayPillarFromDate(y, m, d);
-    const info = dayMasterInfo(day.stemIndex);
-    const dayStem = STEMS[day.stemIndex - 1];
-
-    let hourBlock = "";
-    if (hour !== null){
-      const hp = hourPillar(day.stemIndex, hour);
-      hourBlock = `
-        <div class="detail-grid">
-          <div>Hour Pillar: <span class="mono">${hp.pillar}</span></div>
-          <div style="color:var(--muted2);font-size:12px;">Hour Branch rule: Zi (23–01), Chou (01–03) … Hai (21–23)</div>
-        </div>
-      `;
-    }
-
-    out.innerHTML = `
-      <div class="bigline">
-        <div>
-          <p class="big">${info.emoji} ${info.element}</p>
-          <div class="subbig">Day Master: <span class="mono">${info.label}</span> (${info.roman} · <span class="mono">${info.han}</span>)</div>
-        </div>
-        <span class="pill">Day Stem: <span class="mono">${dayStem}</span></span>
-      </div>
-
-      <details>
-        <summary>Show details</summary>
-        <div class="detail-grid">
-          <div>Day Pillar (Stem+Branch): <span class="mono">${day.pillar}</span></div>
-          ${hourBlock}
-          <div style="color:var(--muted2);font-size:12px;">Calculated date: ${y}-${pad2(m)}-${pad2(d)}</div>
-        </div>
-      </details>
-    `;
-    out.style.display = "block";
-  }
-
-  function resetAll(){
-    birthDate.value = "";
-    birthTime.value = "";
-    out.style.display = "none";
-    out.innerHTML = "";
-  }
-
-  calcBtn.addEventListener("click", calculate);
-  resetBtn.addEventListener("click", resetAll);
-
-  // Auto-calc on change (nice on mobile)
-  birthDate.addEventListener("change", () => { if (birthDate.value) calculate(); });
-  birthTime.addEventListener("change", () => { if (birthDate.value) calculate(); });
-</script>
-</body>
-</html>
+    return { jd, stemIndex: T, branchIndex: B, pillar: STEMS[T-1] + BRANCHES[B]()
