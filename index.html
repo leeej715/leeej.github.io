@@ -1,93 +1,295 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>오행(목·화·토·금·수) 빠른 확인</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Five Elements Finder (Wood/Fire/Earth/Metal/Water)</title>
+
+  <!-- Optional: nicer mobile status bar / home screen -->
+  <meta name="theme-color" content="#0b0c10" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+
   <style>
-    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", sans-serif; }
-    body { margin: 0; background:#0b0c10; color:#eaf0ff; }
-    .wrap { max-width: 760px; margin: 0 auto; padding: 24px; }
-    .card { background:#121420; border:1px solid #22263a; border-radius:16px; padding:18px; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
-    h1 { font-size: 20px; margin: 0 0 10px; }
-    p { margin: 8px 0; line-height: 1.45; color:#cbd6ff; }
-    label { display:block; font-size: 13px; color:#cbd6ff; margin: 14px 0 6px; }
-    input, button { font-size: 15px; }
+    :root{
+      --bg:#0b0c10;
+      --card:#121420;
+      --line:#262b44;
+      --text:#eaf0ff;
+      --muted:#b8c4ff;
+      --muted2:#94a3d6;
+      --btn:#1b2140;
+      --btn2:#10142a;
+      --focus:#7aa2ff;
+      --radius:18px;
+    }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      background: radial-gradient(1200px 600px at 10% 0%, #121a3a 0%, transparent 55%),
+                  radial-gradient(1000px 500px at 90% 10%, #1b1340 0%, transparent 60%),
+                  var(--bg);
+      color:var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    .wrap{
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 18px 16px 28px;
+    }
+
+    .header{
+      display:flex;
+      flex-direction: column;
+      gap: 6px;
+      margin: 10px 0 14px;
+    }
+    .title{
+      font-size: clamp(20px, 4.8vw, 28px);
+      font-weight: 820;
+      letter-spacing: .2px;
+      line-height: 1.15;
+      margin:0;
+    }
+    .subtitle{
+      margin:0;
+      color: var(--muted);
+      line-height: 1.4;
+      font-size: 14px;
+    }
+
+    .card{
+      background: color-mix(in oklab, var(--card), #000 10%);
+      border: 1px solid color-mix(in oklab, var(--line), #000 15%);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: 0 18px 45px rgba(0,0,0,.32);
+      backdrop-filter: blur(6px);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    @media (min-width: 720px){
+      .grid.two{
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    label{
+      display:block;
+      font-size: 13px;
+      color: var(--muted);
+      margin: 2px 0 8px;
+    }
+
     input[type="date"], input[type="time"]{
-      width: 100%; padding: 12px 12px; border-radius: 12px;
-      border:1px solid #2a2f48; background:#0f1120; color:#eaf0ff;
+      width:100%;
+      padding: 14px 14px;
+      border-radius: 14px;
+      border: 1px solid color-mix(in oklab, var(--line), #000 20%);
+      background: var(--btn2);
+      color: var(--text);
+      font-size: 16px; /* 모바일에서 자동 확대 방지 */
       outline: none;
     }
-    .row { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    @media (max-width: 640px){ .row { grid-template-columns: 1fr; } }
-    .checks { margin-top: 12px; display:flex; gap: 10px; align-items:center; flex-wrap: wrap; }
-    .checks input { transform: translateY(1px); }
+    input[type="date"]:focus, input[type="time"]:focus{
+      border-color: color-mix(in oklab, var(--focus), #fff 5%);
+      box-shadow: 0 0 0 3px rgba(122,162,255,.20);
+    }
+
+    .toggles{
+      display:flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .toggle{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 1px solid color-mix(in oklab, var(--line), #000 20%);
+      background: rgba(16,20,42,.55);
+    }
+    .toggle input{
+      transform: translateY(2px);
+      width: 18px;
+      height: 18px;
+      accent-color: var(--focus);
+    }
+    .toggle .t-title{
+      font-size: 14px;
+      font-weight: 700;
+      margin:0;
+    }
+    .toggle .t-desc{
+      margin:4px 0 0;
+      font-size: 13px;
+      color: var(--muted2);
+      line-height: 1.35;
+    }
+
+    .actions{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
     button{
-      margin-top: 14px; width:100%; padding: 12px 14px; border-radius: 12px;
-      border:1px solid #2a2f48; background:#1a1f35; color:#eaf0ff; cursor:pointer;
+      width:100%;
+      padding: 14px 14px;
+      border-radius: 14px;
+      border: 1px solid color-mix(in oklab, var(--line), #000 20%);
+      background: var(--btn);
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 800;
+      cursor:pointer;
+      touch-action: manipulation;
+    }
+    button.secondary{
+      background: rgba(16,20,42,.55);
+      font-weight: 750;
+      color: var(--muted);
     }
     button:hover{ filter: brightness(1.08); }
-    .result { margin-top: 14px; padding: 14px; border-radius: 14px; border:1px dashed #2a2f48; background:#0f1120; }
-    .big { font-size: 22px; font-weight: 750; letter-spacing: .2px; }
-    .pill { display:inline-block; padding: 4px 10px; border-radius: 999px; border:1px solid #2a2f48; background:#0b0c10; margin-left: 8px; font-size: 13px; color:#cbd6ff; }
-    .muted { color:#9fb0e8; font-size: 13px; }
-    .mini { font-size: 14px; color:#cbd6ff; }
-    .grid { display:grid; gap: 6px; margin-top: 8px; }
-    .hr { height:1px; background:#22263a; margin: 12px 0; }
+    button:active{ transform: translateY(1px); }
+
+    .result{
+      margin-top: 14px;
+      padding: 16px;
+      border-radius: var(--radius);
+      border: 1px dashed color-mix(in oklab, var(--line), #000 10%);
+      background: rgba(16,20,42,.55);
+      display:none;
+    }
+    .bigline{
+      display:flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .big{
+      font-size: clamp(22px, 6vw, 34px);
+      font-weight: 900;
+      letter-spacing: .2px;
+      margin:0;
+      line-height: 1.05;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      border: 1px solid color-mix(in oklab, var(--line), #000 20%);
+      background: rgba(0,0,0,.18);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+
+    details{
+      margin-top: 12px;
+      border-top: 1px solid rgba(38,43,68,.7);
+      padding-top: 10px;
+    }
+    summary{
+      cursor:pointer;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 14px;
+      list-style: none;
+      outline:none;
+    }
+    summary::-webkit-details-marker{ display:none; }
+    .detail-grid{
+      margin-top: 10px;
+      display:grid;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; color: var(--text); }
+    .note{
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--muted2);
+      line-height: 1.35;
+    }
   </style>
 </head>
+
 <body>
   <div class="wrap">
-    <div class="card">
-      <h1>생년월일(＋시간)로 오행(목·불·토·금·물) 확인</h1>
-      <p class="muted">
-        기준: <b>일간(태어난 “날”의 천간)</b> → 오행으로 변환.
-        시간은 <b>시주(옵션)</b> 표시와 ‘자시(23시) 처리’에만 사용.
+    <div class="header">
+      <h1 class="title">Five Elements Finder</h1>
+      <p class="subtitle">
+        Enter your birth date (and optional time). This simple version uses the <b>Day Stem (Day Master)</b> to map to
+        <b>Wood / Fire / Earth / Metal / Water</b>.
       </p>
+    </div>
 
-      <div class="row">
+    <div class="card">
+      <div class="grid two">
         <div>
-          <label for="birthDate">생년월일</label>
+          <label for="birthDate">Birth date</label>
           <input id="birthDate" type="date" />
         </div>
         <div>
-          <label for="birthTime">태어난 시간 (선택)</label>
+          <label for="birthTime">Birth time (optional)</label>
           <input id="birthTime" type="time" />
         </div>
       </div>
 
-      <div class="checks">
-        <label style="display:flex; gap:8px; align-items:center; margin:0;">
+      <div class="toggles">
+        <div class="toggle">
           <input id="ziAsNextDay" type="checkbox" />
-          자시(23:00–23:59)는 “다음 날”로 계산
-        </label>
-        <label style="display:flex; gap:8px; align-items:center; margin:0;">
+          <div>
+            <p class="t-title">Treat 23:00–23:59 as the next day</p>
+            <p class="t-desc">Some traditions count the late “Zi hour” as the next day. Turn this on if you want that behavior.</p>
+          </div>
+        </div>
+
+        <div class="toggle">
           <input id="showHourPillar" type="checkbox" checked />
-          시간 입력 시 시주(시천간+시지)도 표시
-        </label>
+          <div>
+            <p class="t-title">Show Hour Pillar when time is provided</p>
+            <p class="t-desc">If you enter time, we’ll also show the Hour Pillar (Stem + Branch) as extra info.</p>
+          </div>
+        </div>
       </div>
 
-      <button id="calcBtn">계산하기</button>
+      <div class="actions">
+        <button id="calcBtn">Calculate</button>
+        <button id="resetBtn" class="secondary" type="button">Reset</button>
+      </div>
 
-      <div id="out" class="result" style="display:none;"></div>
+      <div id="out" class="result"></div>
 
-      <div class="hr"></div>
-      <p class="muted">
-        참고: 정통 사주(월주/연주)는 <b>절기(입절)</b>·출생지 경도·표준시 등을 반영해야 해서
-        “완전 정확 버전”은 계산이 더 커져요. 이 페이지는 “간단하게 내 오행(일간)”만 빠르게 보는 MVP예요.
-      </p>
+      <div class="note">
+        For a full Four Pillars calculator (year/month pillars with seasonal markers, location/timezone, etc.),
+        the logic is much larger. This page is intentionally a clean “presentation-friendly” quick checker.
+      </div>
     </div>
   </div>
 
 <script>
-  // --- 기본 데이터 ---
+  // ---- Core data ----
   const STEMS = ["甲","乙","丙","丁","戊","己","庚","辛","壬","癸"];
   const BRANCHES = ["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"];
 
   function mod(n, m){ return ((n % m) + m) % m; }
 
   // Gregorian date -> Julian Day Number at noon (integer)
-  // (표준 알고리즘: JDN은 정오 기준 정수)
   function jdnNoon(y, m, d){
     const a = Math.floor((14 - m) / 12);
     const y2 = y + 4800 - a;
@@ -118,21 +320,21 @@
   }
 
   function elementFromStemIndex(T){
-    if (T === 1 || T === 2) return { ko:"목", emoji:"🌳" };
-    if (T === 3 || T === 4) return { ko:"불", emoji:"🔥" };
-    if (T === 5 || T === 6) return { ko:"토", emoji:"🪨" };
-    if (T === 7 || T === 8) return { ko:"금", emoji:"🪙" };
-    return { ko:"물", emoji:"💧" }; // 9,10
+    if (T === 1 || T === 2) return { name:"Wood", emoji:"🌳" };
+    if (T === 3 || T === 4) return { name:"Fire", emoji:"🔥" };
+    if (T === 5 || T === 6) return { name:"Earth", emoji:"🪨" };
+    if (T === 7 || T === 8) return { name:"Metal", emoji:"🪙" };
+    return { name:"Water", emoji:"💧" }; // 9,10
   }
 
   function hourBranchIndex(hour){
-    // 23:00–00:59 => 子, 01–02 => 丑 ... 21–22 => 亥
-    if (hour === 23 || hour === 0) return 1;
-    return ((hour + 1) >> 1) + 1; // 1..22 -> 2..12
+    // 23:00–00:59 => Zi, 01–02 => Chou ... 21–22 => Hai
+    if (hour === 23 || hour === 0) return 1;  // 子
+    return ((hour + 1) >> 1) + 1;            // 1..22 -> 2..12
   }
 
   function hourPillar(dayStemIndex, hour){
-    // 5 Rat method (table 기반): Zi hour stem depends on day stem.
+    // Zi hour stem start depends on day stem group (5 Rat method)
     // 甲/己 -> 甲, 乙/庚 -> 丙, 丙/辛 -> 戊, 丁/壬 -> 庚, 戊/癸 -> 壬
     const ziStart = {
       1:1, 6:1,
@@ -142,26 +344,36 @@
       5:9, 10:9
     }[dayStemIndex];
 
-    const hb = hourBranchIndex(hour); // 1..12
-    const hs = ( (ziStart - 1 + (hb - 1)) % 10 ) + 1; // 1..10
+    const hb = hourBranchIndex(hour);              // 1..12
+    const hs = ((ziStart - 1 + (hb - 1)) % 10) + 1; // 1..10
     return { stemIndex: hs, branchIndex: hb, pillar: STEMS[hs-1] + BRANCHES[hb-1] };
   }
 
   function pad2(n){ return String(n).padStart(2, "0"); }
 
-  document.getElementById("calcBtn").addEventListener("click", () => {
-    const dateStr = document.getElementById("birthDate").value;
-    const timeStr = document.getElementById("birthTime").value;
-    const ziAsNextDay = document.getElementById("ziAsNextDay").checked;
-    const showHour = document.getElementById("showHourPillar").checked;
+  // ---- UI ----
+  const birthDate = document.getElementById("birthDate");
+  const birthTime = document.getElementById("birthTime");
+  const ziAsNextDay = document.getElementById("ziAsNextDay");
+  const showHourPillar = document.getElementById("showHourPillar");
+  const out = document.getElementById("out");
+  const calcBtn = document.getElementById("calcBtn");
+  const resetBtn = document.getElementById("resetBtn");
 
-    const out = document.getElementById("out");
+  function renderError(msg){
+    out.style.display = "block";
+    out.innerHTML = `<div style="color:#ffd6d6;font-weight:800;">${msg}</div>`;
+  }
+
+  function calculate(){
+    const dateStr = birthDate.value;
+    const timeStr = birthTime.value;
+
     out.style.display = "none";
     out.innerHTML = "";
 
     if (!dateStr){
-      out.style.display = "block";
-      out.innerHTML = `<div class="mini">생년월일을 먼저 입력해줘.</div>`;
+      renderError("Please enter a birth date.");
       return;
     }
 
@@ -170,39 +382,62 @@
     let hour = null, minute = null;
     if (timeStr){
       [hour, minute] = timeStr.split(":").map(Number);
-      // 옵션: 23시대를 다음날로 처리
-      if (ziAsNextDay && hour === 23){
+      if (ziAsNextDay.checked && hour === 23){
         [y, m, d] = addDaysUTC(y, m, d, 1);
       }
     }
 
     const day = dayPillarFromDate(y, m, d);
-    const dayStem = STEMS[day.stemIndex - 1];
     const el = elementFromStemIndex(day.stemIndex);
+    const dayStem = STEMS[day.stemIndex - 1];
 
-    let html = `
-      <div class="big">
-        오행: ${el.emoji} ${el.ko}
-        <span class="pill">일간 ${dayStem}</span>
-      </div>
-      <div class="grid">
-        <div class="mini">일주(일간+일지): <b>${day.pillar}</b></div>
-        <div class="mini muted">계산 기준 날짜: ${y}-${pad2(m)}-${pad2(d)} (정오 JD: ${day.jd})</div>
-      </div>
-    `;
-
-    if (showHour && hour !== null){
+    let hourBlock = "";
+    if (showHourPillar.checked && hour !== null){
       const hp = hourPillar(day.stemIndex, hour);
-      html += `
-        <div class="hr"></div>
-        <div class="mini">시주(옵션): <b>${hp.pillar}</b> <span class="pill">${hour}시대</span></div>
-        <div class="muted">시지 기준: 子(23–01), 丑(01–03) … 亥(21–23)</div>
+      hourBlock = `
+        <div class="detail-grid">
+          <div>Hour Pillar: <span class="mono">${hp.pillar}</span></div>
+          <div style="color:var(--muted2);font-size:12px;">Hour Branch rule: Zi (23–01), Chou (01–03) … Hai (21–23)</div>
+        </div>
       `;
     }
 
-    out.innerHTML = html;
+    out.innerHTML = `
+      <div class="bigline">
+        <p class="big">${el.emoji} ${el.name}</p>
+        <span class="pill">Day Stem: <span class="mono">${dayStem}</span></span>
+      </div>
+
+      <details>
+        <summary>Show details</summary>
+        <div class="detail-grid">
+          <div>Day Pillar (Stem+Branch): <span class="mono">${day.pillar}</span></div>
+          ${hourBlock}
+          <div style="color:var(--muted2);font-size:12px;">Calculated date: ${y}-${pad2(m)}-${pad2(d)}</div>
+        </div>
+      </details>
+    `;
     out.style.display = "block";
-  });
+  }
+
+  function resetAll(){
+    birthDate.value = "";
+    birthTime.value = "";
+    ziAsNextDay.checked = false;
+    showHourPillar.checked = true;
+    out.style.display = "none";
+    out.innerHTML = "";
+  }
+
+  calcBtn.addEventListener("click", calculate);
+  resetBtn.addEventListener("click", resetAll);
+
+  // Optional: auto-calc on change (nice on mobile)
+  birthDate.addEventListener("change", () => { if (birthDate.value) calculate(); });
+  birthTime.addEventListener("change", () => { if (birthDate.value) calculate(); });
+  ziAsNextDay.addEventListener("change", () => { if (birthDate.value) calculate(); });
+  showHourPillar.addEventListener("change", () => { if (birthDate.value) calculate(); });
 </script>
 </body>
 </html>
+
