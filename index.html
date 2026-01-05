@@ -63,8 +63,20 @@
       backdrop-filter: blur(6px);
     }
 
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    /* 3-field date layout */
+    .grid.three{
+      grid-template-columns: 1.2fr 1fr 1fr;
+    }
+
     label{ display:block; font-size: 13px; color: var(--muted); margin: 2px 0 8px; }
-    input[type="date"]{
+
+    input[type="text"]{
       width:100%;
       padding: 14px 14px;
       border-radius: 14px;
@@ -74,7 +86,7 @@
       font-size: 16px; /* prevent iOS zoom */
       outline: none;
     }
-    input[type="date"]:focus{
+    input[type="text"]:focus{
       border-color: color-mix(in oklab, var(--focus), #fff 5%);
       box-shadow: 0 0 0 3px rgba(122,162,255,.20);
     }
@@ -177,6 +189,11 @@
       color: var(--muted2);
       line-height: 1.35;
     }
+
+    /* Make it stack on very small screens */
+    @media (max-width: 420px){
+      .grid.three{ grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 
@@ -184,15 +201,27 @@
   <div class="wrap">
     <div class="header">
       <h1 class="title">Five Elements Finder</h1>
+
       <p class="subtitle">
-        Enter your birth date. You can know your element.<br> Tree(Wood) / Fire / Earth(Soil) / Metal(Gold) / Water.
+        Enter your birth date. You can know your element.<br>
+        Tree(Wood) / Fire / Earth(Soil) / Metal(Gold) / Water.
       </p>
     </div>
 
     <div class="card">
-      <div>
-        <label for="birthDate">Birth date</label>
-        <input id="birthDate" type="date" />
+      <div class="grid three">
+        <div>
+          <label for="birthYear">Year</label>
+          <input id="birthYear" type="text" inputmode="numeric" autocomplete="bday-year" placeholder="YYYY" />
+        </div>
+        <div>
+          <label for="birthMonth">Month</label>
+          <input id="birthMonth" type="text" inputmode="numeric" autocomplete="bday-month" placeholder="MM" />
+        </div>
+        <div>
+          <label for="birthDay">Day</label>
+          <input id="birthDay" type="text" inputmode="numeric" autocomplete="bday-day" placeholder="DD" />
+        </div>
       </div>
 
       <div class="actions">
@@ -235,4 +264,109 @@
     const jd = jdnNoon(y, m, d);
     const T = 1 + mod(jd - 1, 10);
     const B = 1 + mod(jd + 1, 12);
-    return { jd, stemIndex: T, branchIndex: B, pillar: STEMS[T-1] + BRANCHES[B]()
+    return { jd, stemIndex: T, branchIndex: B, pillar: STEMS[T-1] + BRANCHES[B-1] };
+  }
+
+  // UI labels: Tree/Fire/Soil/Metal/Water (presentation-friendly)
+  // Day Master: Big/Small + Chinese + Korean reading
+  function dayMasterInfo(T){
+    switch (T){
+      case 1: return { element:"Tree",  emoji:"🌳", label:"Wood(Tree)",   roman:"Jia",  han:"甲木", ko:"갑목" };
+      case 2: return { element:"Tree",  emoji:"🌿", label:"Wood(Grass)", roman:"Yi",   han:"乙木", ko:"을목" };
+      case 3: return { element:"Fire",  emoji:"🔥", label:"Fire(Sun)",   roman:"Bing", han:"丙火", ko:"병화" };
+      case 4: return { element:"Fire",  emoji:"🕯️", label:"Fire(Candle)", roman:"Ding", han:"丁火", ko:"정화" };
+      case 5: return { element:"Soil",  emoji:"🌎", label:"Earth",  roman:"Wu",   han:"戊土", ko:"무토" };
+      case 6: return { element:"Soil",  emoji:"🪨", label:"Earth(Farmland)",roman:"Ji",   han:"己土", ko:"기토" };
+      case 7: return { element:"Metal", emoji:"🪙", label:"Metal(steel)",  roman:"Geng", han:"庚金", ko:"경금" };
+      case 8: return { element:"Metal", emoji:"💎", label:"Metal(jewel)",roman:"Xin",  han:"辛金", ko:"신금" };
+      case 9: return { element:"Water", emoji:"🌊", label:"Water(Ocean)",  roman:"Ren",  han:"壬水", ko:"임수" };
+      case 10:return { element:"Water", emoji:"💧", label:"Water(River)",roman:"Gui",  han:"癸水", ko:"계수" };
+      default:return { element:"", emoji:"", label:"", roman:"", han:"", ko:"" };
+    }
+  }
+
+  function pad2(n){ return String(n).padStart(2, "0"); }
+
+  function toInt(v){ return Number(String(v).trim()); }
+
+  function isValidDate(y, m, d){
+    if (!Number.isInteger(y) || !Number.isInteger(m) || !Number.isInteger(d)) return false;
+    if (y < 1800 || y > 2200) return false;
+    if (m < 1 || m > 12) return false;
+    if (d < 1 || d > 31) return false;
+
+    const dt = new Date(Date.UTC(y, m - 1, d));
+    return dt.getUTCFullYear() === y && (dt.getUTCMonth() + 1) === m && dt.getUTCDate() === d;
+  }
+
+  const birthYear = document.getElementById("birthYear");
+  const birthMonth = document.getElementById("birthMonth");
+  const birthDay = document.getElementById("birthDay");
+
+  const out = document.getElementById("out");
+  const calcBtn = document.getElementById("calcBtn");
+  const resetBtn = document.getElementById("resetBtn");
+
+  function renderError(msg){
+    out.style.display = "block";
+    out.innerHTML = `<div style="color:#ffd6d6;font-weight:800;">${msg}</div>`;
+  }
+
+  function calculate(){
+    out.style.display = "none";
+    out.innerHTML = "";
+
+    const y = toInt(birthYear.value);
+    const m = toInt(birthMonth.value);
+    const d = toInt(birthDay.value);
+
+    if (!birthYear.value || !birthMonth.value || !birthDay.value){
+      renderError("Please enter Year, Month, and Day.");
+      return;
+    }
+
+    if (!isValidDate(y, m, d)){
+      renderError("Invalid date. Please check Year / Month / Day.");
+      return;
+    }
+
+    const day = dayPillarFromDate(y, m, d);
+    const info = dayMasterInfo(day.stemIndex);
+    const dayStem = STEMS[day.stemIndex - 1];
+
+    out.innerHTML = `
+      <div class="bigline">
+        <div>
+          <p class="big">${info.emoji} ${info.element}</p>
+          <div class="subbig">
+            Day Master: <span class="mono">${info.label}</span>
+            (${info.roman} · <span class="mono">${info.han}</span> · ${info.ko})
+          </div>
+        </div>
+        <span class="pill">Day Stem: <span class="mono">${dayStem}</span></span>
+      </div>
+
+      <details>
+        <summary>Show details</summary>
+        <div class="detail-grid">
+          <div>Day Pillar (Stem+Branch): <span class="mono">${day.pillar}</span></div>
+          <div style="color:var(--muted2);font-size:12px;">Date used: ${y}-${pad2(m)}-${pad2(d)}</div>
+        </div>
+      </details>
+    `;
+    out.style.display = "block";
+  }
+
+  function resetAll(){
+    birthYear.value = "";
+    birthMonth.value = "";
+    birthDay.value = "";
+    out.style.display = "none";
+    out.innerHTML = "";
+  }
+
+  function digitsOnly(el, maxLen){
+    el.addEventListener("input", () => {
+      el.value = el.value.replace(/\D/g, "").slice(0, maxLen);
+    });
+  }
