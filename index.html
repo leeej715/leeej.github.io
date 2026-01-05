@@ -61,3 +61,385 @@
       border-radius: 999px;
       padding: 5px 10px;
       background: rgba(0,0,0,.18);
+    }
+    .status.ok{ color: var(--ok); border-color: rgba(114,255,176,.35); }
+
+    .subtitle{
+      margin:0;
+      color: var(--muted);
+      line-height: 1.4;
+      font-size: 14px;
+    }
+
+    .card{
+      background: rgba(18,20,32,.92);
+      border: 1px solid rgba(42,47,74,.75);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: 0 18px 45px rgba(0,0,0,.32);
+      backdrop-filter: blur(6px);
+    }
+
+    .grid{
+      display:grid;
+      gap: 12px;
+      grid-template-columns: 1fr;
+    }
+    .grid.three{
+      grid-template-columns: 1.2fr 1fr 1fr;
+    }
+    @media (max-width: 420px){
+      .grid.three{ grid-template-columns: 1fr; }
+    }
+
+    label{ display:block; font-size: 13px; color: var(--muted); margin: 2px 0 8px; }
+
+    input[type="text"]{
+      width:100%;
+      padding: 14px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(42,47,74,.9);
+      background: var(--btn2);
+      color: var(--text);
+      font-size: 16px; /* prevent iOS zoom */
+      outline: none;
+    }
+    input[type="text"]:focus{
+      border-color: var(--focus);
+      box-shadow: 0 0 0 3px rgba(122,162,255,.20);
+    }
+
+    .actions{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    button{
+      width:100%;
+      padding: 14px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(42,47,74,.9);
+      background: var(--btn);
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 800;
+      cursor:pointer;
+      touch-action: manipulation;
+    }
+    button.secondary{
+      background: rgba(16,20,42,.55);
+      font-weight: 750;
+      color: var(--muted);
+    }
+    button:active{ transform: translateY(1px); }
+
+    .result{
+      margin-top: 14px;
+      padding: 16px;
+      border-radius: var(--radius);
+      border: 1px dashed rgba(42,47,74,.9);
+      background: rgba(16,20,42,.55);
+      display:none;
+    }
+    .result.error{
+      border-style: solid;
+      border-color: rgba(255,138,138,.45);
+      background: rgba(255,138,138,.08);
+    }
+
+    .bigline{
+      display:flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+    .big{
+      font-size: clamp(22px, 6vw, 34px);
+      font-weight: 900;
+      letter-spacing: .2px;
+      margin:0;
+      line-height: 1.05;
+    }
+    .subbig{
+      margin: 8px 0 0;
+      font-size: 15px;
+      color: var(--muted);
+      font-weight: 750;
+      line-height: 1.25;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      border: 1px solid rgba(42,47,74,.9);
+      background: rgba(0,0,0,.18);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+
+    details{
+      margin-top: 12px;
+      border-top: 1px solid rgba(42,47,74,.7);
+      padding-top: 10px;
+    }
+    summary{
+      cursor:pointer;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 14px;
+      list-style: none;
+      outline:none;
+    }
+    summary::-webkit-details-marker{ display:none; }
+    .detail-grid{
+      margin-top: 10px;
+      display:grid;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; color: var(--text); }
+
+    .note{
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--muted2);
+      line-height: 1.35;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="header">
+      <h1 class="title">
+        Five Elements Finder
+        <span id="status" class="status">Status: Loading…</span>
+      </h1>
+
+      <p class="subtitle">
+        Enter your birth date. You can know your element.<br>
+        Tree(Wood) / Fire / Earth(Soil) / Metal(Gold) / Water.
+      </p>
+    </div>
+
+    <div class="card">
+      <div class="grid three">
+        <div>
+          <label for="birthYear">Year</label>
+          <input id="birthYear" type="text" inputmode="numeric" autocomplete="bday-year" placeholder="YYYY" />
+        </div>
+        <div>
+          <label for="birthMonth">Month</label>
+          <input id="birthMonth" type="text" inputmode="numeric" autocomplete="bday-month" placeholder="MM" />
+        </div>
+        <div>
+          <label for="birthDay">Day</label>
+          <input id="birthDay" type="text" inputmode="numeric" autocomplete="bday-day" placeholder="DD" />
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="calcBtn" type="button">Calculate</button>
+        <button id="resetBtn" class="secondary" type="button">Reset</button>
+      </div>
+
+      <div id="out" class="result"></div>
+
+      <div class="note">
+        Quick, presentation-friendly checker (date only).
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const statusEl = document.getElementById("status");
+
+  function setStatusOk(){
+    statusEl.textContent = "Status: Ready";
+    statusEl.classList.add("ok");
+  }
+  function setStatusErr(msg){
+    statusEl.textContent = "Status: Error";
+    statusEl.classList.remove("ok");
+    console.error(msg);
+  }
+
+  try {
+    const STEMS = ["甲","乙","丙","丁","戊","己","庚","辛","壬","癸"];
+    const BRANCHES = ["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"];
+
+    function mod(n, m){ return ((n % m) + m) % m; }
+
+    // Gregorian date -> Julian Day Number at noon (integer)
+    function jdnNoon(y, m, d){
+      const a = Math.floor((14 - m) / 12);
+      const y2 = y + 4800 - a;
+      const m2 = m + 12 * a - 3;
+      return d
+        + Math.floor((153 * m2 + 2) / 5)
+        + 365 * y2
+        + Math.floor(y2 / 4)
+        - Math.floor(y2 / 100)
+        + Math.floor(y2 / 400)
+        - 32045;
+    }
+
+    // Sexagenary day stem/branch from JD_noon:
+    // T = 1 + mod(JD_noon - 1, 10)
+    // B = 1 + mod(JD_noon + 1, 12)
+    function dayPillarFromDate(y, m, d){
+      const jd = jdnNoon(y, m, d);
+      const T = 1 + mod(jd - 1, 10);
+      const B = 1 + mod(jd + 1, 12);
+      return { jd, stemIndex: T, branchIndex: B, pillar: STEMS[T-1] + BRANCHES[B-1] };
+    }
+
+    // UI labels: Tree/Fire/Soil/Metal/Water (presentation-friendly)
+    // Day Master: Big/Small + Chinese + Korean reading
+    function dayMasterInfo(T){
+      switch (T){
+        case 1: return { element:"Tree",  emoji:"🌳", label:"Wood(Tree)",      roman:"Jia",  han:"甲木", ko:"갑목" };
+        case 2: return { element:"Tree",  emoji:"🌿", label:"Wood(Grass)",     roman:"Yi",   han:"乙木", ko:"을목" };
+        case 3: return { element:"Fire",  emoji:"🔥", label:"Fire(Sun)",       roman:"Bing", han:"丙火", ko:"병화" };
+        case 4: return { element:"Fire",  emoji:"🕯️", label:"Fire(Candle)",   roman:"Ding", han:"丁火", ko:"정화" };
+        case 5: return { element:"Soil",  emoji:"🌎", label:"Earth",           roman:"Wu",   han:"戊土", ko:"무토" };
+        case 6: return { element:"Soil",  emoji:"🪨", label:"Earth(Farmland)", roman:"Ji",   han:"己土", ko:"기토" };
+        case 7: return { element:"Metal", emoji:"🪙", label:"Metal(steel)",    roman:"Geng", han:"庚金", ko:"경금" };
+        case 8: return { element:"Metal", emoji:"💎", label:"Metal(jewel)",    roman:"Xin",  han:"辛金", ko:"신금" };
+        case 9: return { element:"Water", emoji:"🌊", label:"Water(Ocean)",    roman:"Ren",  han:"壬水", ko:"임수" };
+        case 10:return { element:"Water", emoji:"💧", label:"Water(River)",    roman:"Gui",  han:"癸水", ko:"계수" };
+        default:return { element:"", emoji:"", label:"", roman:"", han:"", ko:"" };
+      }
+    }
+
+    function pad2(n){ return String(n).padStart(2, "0"); }
+    function toInt(v){ return Number(String(v).trim()); }
+
+    function isValidDate(y, m, d){
+      if (!Number.isInteger(y) || !Number.isInteger(m) || !Number.isInteger(d)) return false;
+      if (y < 1800 || y > 2200) return false;
+      if (m < 1 || m > 12) return false;
+      if (d < 1 || d > 31) return false;
+
+      const dt = new Date(Date.UTC(y, m - 1, d));
+      return dt.getUTCFullYear() === y && (dt.getUTCMonth() + 1) === m && dt.getUTCDate() === d;
+    }
+
+    const birthYear = document.getElementById("birthYear");
+    const birthMonth = document.getElementById("birthMonth");
+    const birthDay = document.getElementById("birthDay");
+
+    const out = document.getElementById("out");
+    const calcBtn = document.getElementById("calcBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    function showError(msg){
+      out.classList.add("error");
+      out.style.display = "block";
+      out.innerHTML = `<div style="color:var(--err);font-weight:900;">${msg}</div>`;
+    }
+
+    function showResult(html){
+      out.classList.remove("error");
+      out.style.display = "block";
+      out.innerHTML = html;
+    }
+
+    function calculate(){
+      try{
+        out.style.display = "none";
+        out.innerHTML = "";
+        out.classList.remove("error");
+
+        const y = toInt(birthYear.value);
+        const m = toInt(birthMonth.value);
+        const d = toInt(birthDay.value);
+
+        if (!birthYear.value || !birthMonth.value || !birthDay.value){
+          showError("Please enter Year, Month, and Day.");
+          return;
+        }
+
+        if (!isValidDate(y, m, d)){
+          showError("Invalid date. Please check Year / Month / Day.");
+          return;
+        }
+
+        const day = dayPillarFromDate(y, m, d);
+        const info = dayMasterInfo(day.stemIndex);
+        const dayStem = STEMS[day.stemIndex - 1];
+
+        showResult(`
+          <div class="bigline">
+            <div>
+              <p class="big">${info.emoji} ${info.element}</p>
+              <div class="subbig">
+                Day Master: <span class="mono">${info.label}</span>
+                (${info.roman} · <span class="mono">${info.han}</span> · ${info.ko})
+              </div>
+            </div>
+            <span class="pill">Day Stem: <span class="mono">${dayStem}</span></span>
+          </div>
+
+          <details>
+            <summary>Show details</summary>
+            <div class="detail-grid">
+              <div>Day Pillar (Stem+Branch): <span class="mono">${day.pillar}</span></div>
+              <div style="color:var(--muted2);font-size:12px;">Date used: ${y}-${pad2(m)}-${pad2(d)}</div>
+            </div>
+          </details>
+        `);
+      }catch(e){
+        showError("Calculation failed. (Open console for details)");
+        console.error(e);
+      }
+    }
+
+    function resetAll(){
+      birthYear.value = "";
+      birthMonth.value = "";
+      birthDay.value = "";
+      out.style.display = "none";
+      out.innerHTML = "";
+      out.classList.remove("error");
+    }
+
+    function digitsOnly(el, maxLen){
+      el.addEventListener("input", () => {
+        el.value = el.value.replace(/\D/g, "").slice(0, maxLen);
+      });
+    }
+
+    digitsOnly(birthYear, 4);
+    digitsOnly(birthMonth, 2);
+    digitsOnly(birthDay, 2);
+
+    // Auto-calc when all fields are present
+    [birthYear, birthMonth, birthDay].forEach(el => {
+      el.addEventListener("input", () => {
+        if (birthYear.value.length === 4 && birthMonth.value && birthDay.value) calculate();
+      });
+      el.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") calculate();
+      });
+    });
+
+    calcBtn.addEventListener("click", calculate);
+    resetBtn.addEventListener("click", resetAll);
+
+    setStatusOk();
+  } catch (e) {
+    setStatusErr(e);
+  }
+})();
+</script>
+</body>
+</html>
